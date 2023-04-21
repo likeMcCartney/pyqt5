@@ -1,0 +1,15 @@
+*.zip
+.svn
+.vscode
+.idea
+**/bin/*
+**/Debug/*
+**/__pycache__/
+**/logs/*
+*.d
+*.a
+*.o
+*.log
+*.patch
+
+*.pcapng
