@@ -26,13 +26,55 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, *args, **kwargs) -> None:
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setupUi(self)
-        self.plot(listX, listY1)
-        self.plot(listX, listY2, 2)
+        # Настройка окна отображения графиков
+        self.pyqtgraphWidget.hideAxis('left')
+        self.pyqtgraphWidget.setMouseEnabled(y=False, x=False)
+        self.pyqtgraphWidget.setXRange(0, listX[len(listX)-1], padding=False)
+        # Настройка горизонтальной полосы прокрутки
+        self.max_x_scale = listX[len(listX)-1] - listX[0]
+        self.x_scale = self.max_x_scale
+        self.hScrollBar.setMinimum(listX[0])
+        self.hScrollBar.setMaximum(listX[0])
+        self.hScrollBar.setPageStep(self.max_x_scale)
+        # Добавление функций кнопок и скроллеров
+        self.add_functions()
+        # Тестовые графики
+        for i in range(0, 5):
+            self.plot(listX, listY1, -((2*i)*2))
+            self.plot(listX, listY2, -((2*i+1)*2))
 
     def plot(self, x, y, yoffs=0):
-        for i in range(0, len(y)):
-            y[i] += yoffs
-        self.pyqtgraphWidget.plot(x, y)
+        lx = list(x)
+        ly = list(y)
+        for i in range(0, len(ly)):
+            ly[i] += yoffs
+        self.pyqtgraphWidget.plot(lx, ly)
+
+    def change_x_scale(self, step):
+        x_min = self.hScrollBar.minimum()
+        x_max = self.hScrollBar.maximum()
+        page_step = int(self.hScrollBar.pageStep() * step)
+        if page_step > self.max_x_scale:
+            page_step = self.max_x_scale
+        x_max = self.max_x_scale - page_step - x_min
+        self.x_scale = page_step
+        self.hScrollBar.setMinimum(x_min)
+        self.hScrollBar.setMaximum(x_max)
+        self.hScrollBar.setPageStep(page_step)
+        self.pyqtgraphWidget.setXRange(0, page_step, padding=False)
+
+    def scroll_x(self):
+        x_min = self.hScrollBar.value()
+        x_max = x_min + self.x_scale
+        if x_max > 50000:
+            x_max = 50000
+            x_min = 50000 - self.x_scale
+        self.pyqtgraphWidget.setXRange(x_min, x_max, padding=False)
+    
+    def add_functions(self):
+        self.scaleIncButton.clicked.connect(lambda: self.change_x_scale(1.4))
+        self.scaleDecButton.clicked.connect(lambda: self.change_x_scale(0.7))
+        self.hScrollBar.valueChanged.connect(lambda: self.scroll_x())
 
 
 if __name__ == "__main__":
