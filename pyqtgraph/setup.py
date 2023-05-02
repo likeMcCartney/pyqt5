@@ -19,7 +19,30 @@ for i in range(2, 1000):
         listX.append(listX[i-1])
         listY1.append(0) if listY1[i-1] == 1 else listY1.append(1)
         listY2.append(0) if listY2[i-1] == 1 else listY2.append(1)
-        
+
+step = 2
+listX2_ = [0,100,400,800,1200,15000,20000,30000,40000]
+listX2 = [0]
+listY3_1 = [0.5]
+listY3_2 = [0.5]
+for val in listX2_:
+    if val == 0:
+        listX2.append(step)
+        listY3_1.append(0)
+        listY3_2.append(1)
+        continue
+    listX2.append(val)
+    prevY3_1 = listY3_1[-1]
+    prevY3_2 = listY3_2[-1]
+    listY3_1.append(prevY3_1)
+    listY3_2.append(prevY3_2)
+    listX2.append(val+step)
+    listY3_1.append(prevY3_2)
+    listY3_2.append(prevY3_1)
+listX2.append(listX[-1])
+listY3_1.append(listY3_1[-1])
+listY3_2.append(listY3_2[-1])
+
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
@@ -30,16 +53,20 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pyqtgraphWidget.hideAxis('left')
         self.pyqtgraphWidget.setMouseEnabled(y=False, x=False)
         self.pyqtgraphWidget.setXRange(0, listX[len(listX)-1], padding=False)
+        self.pyqtgraphWidget.setYRange(-19, 2, padding=False)
         # Настройка горизонтальной полосы прокрутки
         self.max_x_scale = listX[len(listX)-1] - listX[0]
         self.x_scale = self.max_x_scale
         self.hScrollBar.setMinimum(listX[0])
         self.hScrollBar.setMaximum(listX[0])
         self.hScrollBar.setPageStep(self.max_x_scale)
+        # Настройка вертикальной полосы прокрутки
         # Добавление функций кнопок и скроллеров
         self.add_functions()
         # Тестовые графики
-        for i in range(0, 5):
+        self.plot(listX2, listY3_1)
+        self.plot(listX2, listY3_2)
+        for i in range(1, 6):
             self.plot(listX, listY1, -((2*i)*2))
             self.plot(listX, listY2, -((2*i+1)*2))
 
@@ -72,9 +99,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pyqtgraphWidget.setXRange(x_min, x_max, padding=False)
     
     def add_functions(self):
-        self.scaleIncButton.clicked.connect(lambda: self.change_x_scale(1.4))
-        self.scaleDecButton.clicked.connect(lambda: self.change_x_scale(0.7))
+        self.scaleIncButton.clicked.connect(lambda: self.change_x_scale(0.7))
+        self.scaleDecButton.clicked.connect(lambda: self.change_x_scale(1.4))
         self.hScrollBar.valueChanged.connect(lambda: self.scroll_x())
+        self.vScrollBar.valueChanged.connect(lambda: self.print())
+        self.pyqtgraphWidget.scene().sigMouseClicked.connect(self.graph_click_mouse)
+
+    def print(self):
+        print(self.vScrollBar.value())
+    
+    def graph_click_mouse(self, mouseClickEvent):
+        print('clicked plot 0x{:x}, event: {}'.format(id(self), mouseClickEvent))
 
 
 if __name__ == "__main__":
