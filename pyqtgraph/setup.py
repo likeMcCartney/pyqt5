@@ -54,6 +54,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pyqtgraphWidget.setMouseEnabled(y=False, x=False)
         self.pyqtgraphWidget.setXRange(0, listX[len(listX)-1], padding=False)
         self.pyqtgraphWidget.setYRange(-19, 2, padding=False)
+        # Бесконечная линия
+        self.infinite_line = pg.InfiniteLine(pos=100, movable=True)
+        self.pyqtgraphWidget.addItem(self.infinite_line)
+        # Получение объектов, отображаемых на графике
+        view_box = self.pyqtgraphWidget.getViewBox()
+        for child in view_box.allChildren():
+            print(child)
+        # Текст
+        text = pg.TextItem(text='XYZ')
+        self.pyqtgraphWidget.addItem(text)
         # Настройка горизонтальной полосы прокрутки
         self.max_x_scale = listX[len(listX)-1] - listX[0]
         self.x_scale = self.max_x_scale
@@ -61,21 +71,26 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.hScrollBar.setMaximum(listX[0])
         self.hScrollBar.setPageStep(self.max_x_scale)
         # Настройка вертикальной полосы прокрутки
+        self.y_max = 2
+        self.y_min = -1
         # Добавление функций кнопок и скроллеров
         self.add_functions()
         # Тестовые графики
-        self.plot(listX2, listY3_1)
-        self.plot(listX2, listY3_2)
+        self.plot(listX2, listY3_1, color="r")
+        self.plot(listX2, listY3_2, color="r")
+        self.plot(listX2, listY3_1, -2, color="g")
+        self.plot(listX2, listY3_2, -2, color="g")
         for i in range(1, 6):
             self.plot(listX, listY1, -((2*i)*2))
             self.plot(listX, listY2, -((2*i+1)*2))
+            self.y_min -= 4
 
-    def plot(self, x, y, yoffs=0):
+    def plot(self, x, y, yoffs=0, color="w"):
         lx = list(x)
         ly = list(y)
         for i in range(0, len(ly)):
             ly[i] += yoffs
-        self.pyqtgraphWidget.plot(lx, ly)
+        self.pyqtgraphWidget.plot(lx, ly, pen=pg.mkPen(color))
 
     def change_x_scale(self, step):
         x_min = self.hScrollBar.minimum()
@@ -98,18 +113,32 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             x_min = 50000 - self.x_scale
         self.pyqtgraphWidget.setXRange(x_min, x_max, padding=False)
     
+    def scroll_y(self):
+        pass
+
+    def move_line(self):
+        self.infinite_line.setPos(2000)
+    
     def add_functions(self):
         self.scaleIncButton.clicked.connect(lambda: self.change_x_scale(0.7))
         self.scaleDecButton.clicked.connect(lambda: self.change_x_scale(1.4))
         self.hScrollBar.valueChanged.connect(lambda: self.scroll_x())
-        self.vScrollBar.valueChanged.connect(lambda: self.print())
+        self.vScrollBar.valueChanged.connect(lambda: self.scroll_y())
         self.pyqtgraphWidget.scene().sigMouseClicked.connect(self.graph_click_mouse)
-
-    def print(self):
-        print(self.vScrollBar.value())
+        self.moveLineButton.clicked.connect(lambda: self.move_line())
     
     def graph_click_mouse(self, mouseClickEvent):
-        print('clicked plot 0x{:x}, event: {}'.format(id(self), mouseClickEvent))
+        pos = mouseClickEvent.pos().x()
+        shift = self.hScrollBar.minimum()
+        chart_size = self.hScrollBar.maximum() - self.hScrollBar.minimum() + self.hScrollBar.pageStep()
+        widget_size = self.pyqtgraphWidget.frameGeometry().width()
+        scale = chart_size / widget_size
+        line_pos = shift + (pos * scale)
+        self.infinite_line.setPos(line_pos)
+        
+        # print('clicked plot 0x{:x}, event: {}'.format(id(self), mouseClickEvent))
+        # print(mouseClickEvent.pos())
+        pass
 
 
 if __name__ == "__main__":

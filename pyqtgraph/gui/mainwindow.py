@@ -32,6 +32,9 @@ class Ui_MainWindow(object):
         self.scaleDecButton.setSizePolicy(sizePolicy)
         self.scaleDecButton.setObjectName("scaleDecButton")
         self.verticalLayout.addWidget(self.scaleDecButton)
+        self.moveLineButton = QtWidgets.QPushButton(self.centralwidget)
+        self.moveLineButton.setObjectName("moveLineButton")
+        self.verticalLayout.addWidget(self.moveLineButton)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         self.gridLayout.addLayout(self.verticalLayout, 0, 4, 1, 1)
@@ -68,4 +71,5 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "PyQtGraph"))
         self.scaleIncButton.setText(_translate("MainWindow", "Scale+"))
         self.scaleDecButton.setText(_translate("MainWindow", "Scale-"))
+        self.moveLineButton.setText(_translate("MainWindow", "Move line"))
 from pyqtgraph import PlotWidget
